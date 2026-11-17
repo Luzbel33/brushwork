@@ -16,6 +16,8 @@ On a phone, use the layout control beside **Reference** to switch between side-b
 
 With Python 3 installed, run `python -m http.server 8000 --bind 127.0.0.1` in this directory and open [the local studio](http://127.0.0.1:8000). You can also host the directory on a static web host.
 
+After changing a script, stylesheet or icon, run `python build.py --refresh-assets` and commit the updated `index.html`. Its content-based asset URLs let returning visitors pick up the same version of the player and its translations.
+
 For a single file that opens with a double-click and works offline, run `python build.py`, then open `Brushwork.html`. Python is only needed to make the file. Use a browser with Canvas 2D and Web Workers.
 
 English is the default. The language selector also offers Spanish, Simplified Chinese, Brazilian Portuguese and French. The browser remembers your selection on this device when local storage is available.

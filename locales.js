@@ -251,7 +251,8 @@
   }
 
   function t(key, values = {}) {
-    return labels[code][key].replace(/\{(\w+)\}/g, (_, name) => String(values[name]));
+    const text = labels[code][key] ?? labels.en[key] ?? key;
+    return text.replace(/\{(\w+)\}/g, (_, name) => String(values[name]));
   }
   window.StudioLanguage = {
     get code() {

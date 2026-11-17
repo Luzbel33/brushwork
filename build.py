@@ -1,6 +1,7 @@
 """Pack the studio into a single HTML file using only the Python standard library."""
 import argparse
 import base64
+import hashlib
 import json
 import mimetypes
 import re
@@ -8,6 +9,24 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 SAMPLE = "sample/chelsea.png"
+SCRIPTS = ("locales.js", "brush.js", "painting-worker.js", "timeline.js", "player.js")
+ICONS = ("mark.svg", "favicon.ico", "touch-icon.png")
+ASSETS = (*SCRIPTS, *ICONS, "studio.css")
+ASSET_LINK = re.compile(r'((?:src|href)=")(' + "|".join(map(re.escape, ASSETS)) + r')(?:\?v=[0-9a-f]+)?"')
+
+
+def refresh_assets():
+    index = ROOT / "index.html"
+    versions = {}
+    for asset in ASSETS:
+        path = ROOT / asset
+        data = path.read_bytes() if path.suffix in (".png", ".ico") else path.read_text(encoding="utf-8").encode("utf-8")
+        versions[asset] = hashlib.sha256(data).hexdigest()[:12]
+    template = index.read_text(encoding="utf-8")
+    html = ASSET_LINK.sub(lambda m: f'{m[1]}{m[2]}?v={versions[m[2]]}"', template)
+    if html != template:
+        with index.open("w", encoding="utf-8", newline="\n") as out:
+            out.write(html)
 
 
 def data_url(image):
@@ -25,14 +44,15 @@ def configure(template, reference, settings=None):
 
 def pack(output, image=ROOT / SAMPLE, settings=None):
     template = (ROOT / "index.html").read_text(encoding="utf-8")
+    template = ASSET_LINK.sub(r'\1\2"', template)
     html = configure(template, data_url(image), settings)
     # Sharing cards describe the hosted sample. A portable file may contain a different photo.
     html = re.sub(r'^  <meta (?:property="og:|name="twitter:).*?\n', "", html, flags=re.M)
-    for asset in ("mark.svg", "favicon.ico", "touch-icon.png"):
+    for asset in ICONS:
         html = html.replace(f'"{asset}"', '"' + data_url(ROOT / asset) + '"')
     css = (ROOT / "studio.css").read_text(encoding="utf-8")
     html = html.replace('<link rel="stylesheet" href="studio.css">', "<style>" + css + "</style>")
-    for script in ("locales.js", "brush.js", "painting-worker.js", "timeline.js", "player.js"):
+    for script in SCRIPTS:
         source = (ROOT / script).read_text(encoding="utf-8")
         source = re.sub(r"</script", r"<\\/script", source, flags=re.I)
         html = html.replace(f'<script src="{script}"></script>', "<script>" + source + "</script>")
@@ -46,4 +66,9 @@ def pack(output, image=ROOT / SAMPLE, settings=None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=ROOT / "Brushwork.html")
-    pack(parser.parse_args().output)
+    parser.add_argument("--refresh-assets", action="store_true", help="Update the public page's asset versions after editing the studio")
+    args = parser.parse_args()
+    if args.refresh_assets:
+        refresh_assets()
+    else:
+        pack(args.output)
