@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f3ec">
+  <title>Brushwork · Painting studio</title>
+  <meta name="description" content="Watch your photo become a painting, stroke by stroke. Scrub through the process and save your favorite frame. Everything runs in your browser.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Brushwork">
+  <meta property="og:description" content="Watch a photo turn into brushstrokes. Drag the timeline to find the frame you like.">
+  <meta property="og:url" content="https://luzbel33.github.io/brushwork/">
+  <meta property="og:image" content="https://luzbel33.github.io/brushwork/sample/preview.jpg">
+  <meta property="og:image:alt" content="A photograph of Chelsea the cat next to a partly finished painting of her.">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/x-icon" sizes="16x16 32x32 48x48" href="favicon.ico">
+  <link rel="icon" type="image/svg+xml" sizes="any" href="mark.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="touch-icon.png">
+  <link rel="stylesheet" href="studio.css">
+</head>
+<body>
+  <svg class="symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="i-photo" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9" r="1.5"/><path d="m4 17 5-5 4 4 3-3 5 5"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></symbol>
+    <symbol id="i-save" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></symbol>
+    <symbol id="i-caret" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></symbol>
+    <symbol id="i-brush" viewBox="0 0 24 24"><path d="M13 15c2-1 5-5 7-10l-1-1c-5 3-9 6-10 9m0 0 4 2M12 16c0 4-4 5-8 4 2-1 1-4 3-5 2-1 4-1 5 1Z"/></symbol>
+    <symbol id="i-restart" viewBox="0 0 24 24"><path d="M3.5 5v5h5M4 10a8 8 0 1 1 1 7"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14m8-14v14" stroke-width="3"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7z" fill="currentColor" stroke-linejoin="round"/></symbol>
+    <symbol id="i-end" viewBox="0 0 24 24"><path d="m5 5 10 7L5 19zM19 5v14"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-frame" viewBox="0 0 24 24"><path d="M3 9V4h5m8 0h5v5m0 6v5h-5m-8 0H3v-5"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-layout" viewBox="0 0 24 24"><rect x="2.5" y="4" width="8" height="16" rx="1.5"/><rect x="13.5" y="4" width="8" height="16" rx="1.5"/></symbol>
+  </defs></svg>
+  <header class="top"><div class="brand"><img class="brand-mark" src="mark.svg" alt="" width="40" height="40"><h1>Brushwork</h1></div>
+    <nav class="top-actions" aria-label="Studio" data-aria="studio">
+      <label class="language"><svg class="icon"><use href="#i-globe"/></svg><span class="sr" data-t="language">Language</span><select id="language"><option lang="en" value="en">English</option><option lang="es" value="es">Español</option><option lang="zh-CN" value="zh-CN">简体中文</option><option lang="pt-BR" value="pt-BR">Português</option><option lang="fr" value="fr">Français</option></select><svg class="icon caret"><use href="#i-caret"/></svg></label>
+      <button id="upload" class="btn"><svg class="icon"><use href="#i-upload"/></svg><span data-t="open">Open photo</span></button>
+      <input id="photo-file" type="file" accept="image/*" hidden>
+      <button id="save" class="btn primary" aria-haspopup="dialog" disabled><svg class="icon"><use href="#i-save"/></svg><span data-t="export">Save PNG</span></button>
+    </nav>
+  </header>
+  <main>
+    <p id="file-feedback" role="status" hidden></p>
+    <div class="gallery is-stacked" id="gallery">
+      <figure><figcaption><span><svg class="icon"><use href="#i-photo"/></svg><strong data-t="reference">Reference</strong></span><small id="source-size" dir="ltr"></small><button id="layout" class="text-button" aria-controls="gallery"><svg class="icon" aria-hidden="true"><use href="#i-layout"/></svg><span>Side by side</span></button></figcaption>
+        <div class="mat"><img id="reference" src="sample/chelsea.png" alt="Reference photograph" draggable="false"></div></figure>
+      <figure><figcaption><span><svg class="icon"><use href="#i-brush"/></svg><strong data-t="painting">Painting</strong></span><button id="tools" class="text-button" data-t="tools" aria-pressed="false" hidden>Brush tools</button></figcaption>
+        <div class="mat" id="work"><canvas id="art" width="400" height="300" aria-label="Painting in progress" data-aria="art"></canvas></div></figure>
+    </div>
+    <section class="transport" data-aria="playback" aria-label="Playback">
+      <div class="progress-info"><span class="stage"><i aria-hidden="true"></i><span id="status" role="status">Preparing canvas…</span></span><span class="reading"><span id="pass"></span><span id="time" dir="ltr">0:00 / –:––</span><strong id="percent">0%</strong></span></div>
+      <input id="track" type="range" min="0" max="100" step="0.01" value="0" disabled aria-label="Seek through the painting" data-aria="seek" dir="ltr">
+      <div class="play-controls"><div class="cluster"><button id="toggle" class="btn transport-primary" disabled><svg class="icon"><use href="#i-pause"/></svg><span>Pause</span></button>
+        <button id="restart" class="btn plain" disabled><svg class="icon"><use href="#i-restart"/></svg><span data-t="restart">Restart</span></button>
+        <button id="speed" class="btn speed" disabled><span class="sr" data-t="speed">Playback speed</span><bdi>1×</bdi></button></div>
+        <button id="final" class="btn plain" disabled><svg class="icon"><use href="#i-end"/></svg><span data-t="finish">Jump to finish</span></button></div>
+    </section>
+  </main>
+  <dialog id="export-dialog" aria-labelledby="export-title"><div class="dialog-head"><h2 id="export-title" data-t="export">Save PNG</h2><button class="icon-button" id="close-export" data-aria="close" aria-label="Close"><svg class="icon"><use href="#i-close"/></svg></button></div>
+    <button class="choice" id="save-current"><svg class="icon"><use href="#i-frame"/></svg><span><strong data-t="current">Save current frame</strong><small id="current-note"></small></span></button>
+    <button class="choice" id="save-final"><svg class="icon"><use href="#i-brush"/></svg><span><strong data-t="completed">Save finished painting</strong><small id="final-note"></small></span></button>
+  </dialog>
+  <!--CONFIG-->
+  <script src="locales.js"></script>
+  <script src="brush.js"></script>
+  <script src="painting-worker.js"></script>
+  <script src="timeline.js"></script>
+  <script src="player.js"></script>
+</body></html>
