@@ -150,6 +150,7 @@
       mountEditor(project, hidden);
     }
     id('language').value = lang.code;
+    id('project-source').title = t('sourceCode');
     updateLayout();
     renderProgress(position, true);
     status(statusKey);
@@ -506,7 +507,7 @@
       piece.sourceWidth = img.naturalWidth;
       piece.sourceHeight = img.naturalHeight;
       if (!piece.sourceWidth || !piece.sourceHeight) throw Error();
-      if (typeof Worker === 'undefined' || typeof OffscreenCanvas === 'undefined') {
+      if (typeof Worker === 'undefined') {
         fail(piece, 'engine');
         return;
       }

@@ -57,12 +57,12 @@ class StrokeTimeline {
     let anchor = 0;
     for (const at of this.frames.keys()) if (at <= target && at > anchor) anchor = at;
     if (this.drawn < anchor || this.drawn > target) {
-      const bitmap = anchor ? await createImageBitmap(this.frames.get(anchor)) : null;
-      if (!current()) {bitmap?.close(); return;}
+      const bitmap = anchor ? await this.decode(this.frames.get(anchor)) : null;
+      if (!current()) {bitmap?.close?.(); return;}
       ctx.resetTransform();
       if (bitmap) {
         ctx.drawImage(bitmap, 0, 0);
-        bitmap.close();
+        bitmap.close?.();
       } else {
         ctx.fillStyle = this.ground;
         ctx.fillRect(0, 0, piece.width, piece.height);
@@ -91,6 +91,19 @@ class StrokeTimeline {
     }
     const view = await readStrokePass(selected);
     return current() ? {canvas: this.canvas, index, mark, view} : null;
+  }
+
+  async decode(blob) {
+    if (typeof createImageBitmap === 'function') return createImageBitmap(blob);
+    const img = new Image();
+    const url = URL.createObjectURL(blob);
+    try {
+      img.src = url;
+      await img.decode();
+      return img;
+    } finally {
+      URL.revokeObjectURL(url);
+    }
   }
 
   release() {

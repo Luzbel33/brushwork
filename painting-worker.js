@@ -1,5 +1,54 @@
 (function startPaintingWorker() {
   'use strict';
+  // The planner stays in a worker even when the browser only offers Canvas 2D on the main thread.
+  function createSurface({w, h, outputWidth, outputHeight, ground}, onPage, stopped = () => false) {
+    function canvas(width, height) {
+      if (!onPage) return new OffscreenCanvas(width, height);
+      const element = document.createElement('canvas');
+      element.width = width;
+      element.height = height;
+      return element;
+    }
+    const master = canvas(outputWidth, outputHeight);
+    const probe = canvas(w, h);
+    if (!onPage && typeof master.convertToBlob !== 'function') throw new Error('Worker PNG export is unavailable');
+    const options = {alpha: false, willReadFrequently: true};
+    const surface = master.getContext('2d', options);
+    const read = probe.getContext('2d', options);
+    if (!surface || !read) throw new Error('Canvas 2D is unavailable');
+    surface.fillStyle = ground;
+    surface.fillRect(0, 0, outputWidth, outputHeight);
+    surface.scale(outputWidth / w, outputHeight / h);
+    function png() {
+      if (!onPage) return master.convertToBlob({type: 'image/png'});
+      return new Promise((resolve, reject) => master.toBlob(blob => {
+        if (blob) resolve(blob);
+        else reject(new Error('PNG export failed'));
+      }, 'image/png'));
+    }
+
+    return async ({op, buffer, count, snapshot}) => {
+      if (op === 'sample') {
+        read.drawImage(master, 0, 0, w, h);
+        return {pixels: read.getImageData(0, 0, w, h).data.buffer};
+      }
+      if (op === 'finish') return {png: await png()};
+      const checkpoint = snapshot ? await png() : undefined;
+      const view = new DataView(buffer);
+      if (stopped()) return {};
+      let deadline = performance.now() + 7;
+      for (let index = 0; index < count; index++) {
+        Pincel.mark(surface, view, index);
+        if (onPage && (index + 1) % 64 === 0 && performance.now() >= deadline) {
+          await new Promise(resolve => setTimeout(resolve, 0));
+          if (stopped()) return {};
+          deadline = performance.now() + 7;
+        }
+      }
+      return {buffer, checkpoint};
+    };
+  }
+
   if (typeof document !== 'undefined') {
     let workerUrl;
     window.createPaintingWorker = () => {
@@ -11,7 +60,26 @@
           type: 'text/javascript'
         }));
       }
-      return new Worker(workerUrl);
+      const worker = new Worker(workerUrl);
+      let surface, stopped = false;
+      const terminate = worker.terminate.bind(worker);
+      worker.terminate = () => {
+        stopped = true;
+        surface = null;
+        terminate();
+      };
+      worker.addEventListener('message', async ({data}) => {
+        if (data.type !== 'surface' || stopped) return;
+        try {
+          if (data.op === 'init') surface = createSurface(data, true, () => stopped);
+          const result = data.op === 'init' ? {} : await surface(data);
+          const transfer = result.buffer || result.pixels;
+          if (!stopped) worker.postMessage({type: 'surfaceResult', ...result}, transfer ? [transfer] : []);
+        } catch {
+          if (!stopped) worker.postMessage({type: 'surfaceResult', error: true});
+        }
+      });
+      return worker;
     };
     return;
   }
@@ -409,32 +477,27 @@
     }
     return data;
   }
-  async function paint({
-    pixels,
-    w,
-    h,
-    outputWidth,
-    outputHeight,
-    ground
-  }) {
+  let pendingSurface;
+  function requestSurface(message) {
+    return new Promise((resolve, reject) => {
+      pendingSurface = {resolve, reject};
+      self.postMessage({type: 'surface', ...message}, message.buffer ? [message.buffer] : []);
+    });
+  }
+  async function paint({pixels, w, h, outputWidth, outputHeight, ground}) {
     const unit = Math.max(w, h) / 1050;
     const expectedSeconds = passes.reduce((total, pass) => total + pass.seconds, 0);
     const target = referenceColors(new Uint8ClampedArray(pixels), w, h);
     const rng = randomSource(target),
       smooth = colorPyramid(target, w, h);
-    const master = new OffscreenCanvas(outputWidth, outputHeight);
-    const surface = master.getContext('2d', {
-      alpha: false,
-      willReadFrequently: true
-    });
-    surface.fillStyle = ground;
-    surface.fillRect(0, 0, outputWidth, outputHeight);
-    surface.scale(outputWidth / w, outputHeight / h);
-    const probe = new OffscreenCanvas(w, h),
-      read = probe.getContext('2d', {
-        willReadFrequently: true,
-        alpha: false
-      });
+    const dimensions = {w, h, outputWidth, outputHeight, ground};
+    let render;
+    try {
+      render = createSurface(dimensions, false);
+    } catch {
+      await requestSurface({op: 'init', ...dimensions});
+      render = requestSurface;
+    }
     let lastRadius = -1,
       lastCell = -1,
       colors, field;
@@ -450,22 +513,18 @@
       lastCell = cell;
       let painted = null;
       if (pass.error > 0) {
-        read.drawImage(master, 0, 0, w, h);
-        painted = read.getImageData(0, 0, w, h).data;
+        const sample = await render({op: 'sample'});
+        painted = new Uint8ClampedArray(sample.pixels);
       }
       const limit = i >= 6 ? Math.max(3000, Math.round(w * h * (i === 6 ? .15 : .18))) : w * h;
       const points = candidates(colors, painted, w, h, step, pass.error, limit, rng);
       if (!points.length) continue;
-      const buffer = planStrokes(pass, i, colors, field, points, w, h, unit, rng);
+      const records = planStrokes(pass, i, colors, field, points, w, h, unit, rng);
       // This is the exact starting canvas for this pass, already painted by the planner.
       // Sparse lossless snapshots let a phone skip thousands of earlier strokes during a drag.
-      let checkpoint;
-      if (strokesSinceKeyframe >= 2048) {
-        checkpoint = await master.convertToBlob({type: 'image/png'});
-        strokesSinceKeyframe = 0;
-      }
-      const view = new DataView(buffer);
-      for (let n = 0; n < points.length; n++) Pincel.mark(surface, view, n);
+      const snapshot = strokesSinceKeyframe >= 2048;
+      const {buffer, checkpoint} = await render({op: 'paint', buffer: records, count: points.length, snapshot});
+      if (snapshot) strokesSinceKeyframe = 0;
       strokesSinceKeyframe += points.length;
       // A finished pass can play while the next pass evaluates the current painting.
       const seconds = Math.min(pass.seconds, Math.max(.8, points.length / 60));
@@ -480,17 +539,20 @@
         checkpoint
       }, [buffer]);
     }
-    const png = await master.convertToBlob({
-      type: 'image/png'
-    });
+    const {png} = await render({op: 'finish'});
     self.postMessage({
       type: 'complete',
       png
     });
   }
-  self.onmessage = ({
-    data
-  }) => {
+  self.onmessage = ({data}) => {
+    if (data.type === 'surfaceResult') {
+      const reply = pendingSurface;
+      pendingSurface = null;
+      if (data.error) reply.reject(new Error('Canvas rendering failed'));
+      else reply.resolve(data);
+      return;
+    }
     paint(data).catch(() => self.postMessage({
       type: 'error'
     }));

@@ -16,7 +16,7 @@ On a phone, use the layout control beside **Reference** to switch between side-b
 
 With Python 3 installed, run `python -m http.server 8000 --bind 127.0.0.1` in this directory and open [the local studio](http://127.0.0.1:8000). You can also host the directory on a static web host.
 
-For a single file that opens with a double-click and works offline, run `python build.py`, then open `Brushwork.html`. Python is only needed to make the file. Use a browser that supports Canvas 2D, Web Workers and OffscreenCanvas, such as Chrome.
+For a single file that opens with a double-click and works offline, run `python build.py`, then open `Brushwork.html`. Python is only needed to make the file. Use a browser with Canvas 2D and Web Workers.
 
 English is the default. The language selector also offers Spanish, Simplified Chinese, Brazilian Portuguese and French. The browser remembers your selection on this device when local storage is available.
 
@@ -25,7 +25,7 @@ English is the default. The language selector also offers Spanish, Simplified Ch
 1. The browser reads the photo into memory, preserves its proportions and builds softened copies at different scales.
 2. A Web Worker looks for changes in brightness between neighboring pixels. It estimates the direction of visible contours and uses those directions to guide the brushes.
 3. Broad strokes establish the color masses. On later passes the worker compares the painting with the reference, placing smaller marks where the colors still differ. A seed derived from the photo makes the stroke sequence repeatable in the same browser.
-4. Each mark stores its position, length, width, curve, color and brush texture. The worker paints a finished canvas in the background while the player draws the same marks at the chosen speed. The finished export becomes available as soon as the worker is done.
+4. Each mark stores its position, length, width, curve, color and brush texture. The player draws those marks at the chosen speed while a second canvas prepares the finished export. Browsers with OffscreenCanvas can paint it inside the worker. Other browsers paint it in short batches on the page so the controls stay responsive.
 
 All photo processing takes place on the device. Running the painter requires no account, model download or paid API. New photos are analyzed at up to 1,050 pixels on the long edge and exported at up to 1,600 pixels, without upscaling smaller originals.
 
