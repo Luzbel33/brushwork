@@ -10,7 +10,7 @@ Drag the timeline or tap anywhere on it to revisit a brushstroke. Playback resum
 
 **Save PNG** pauses the playback at the instant you open it. **Save current frame** exports that canvas. **Save finished painting** exports the completed work, including strokes still waiting to play. Both PNGs contain only the painting. Closing the dialog returns you to your previous playback state.
 
-On a phone, use the layout control beside **Reference** to switch between side-by-side and stacked images. Wide photos start stacked so the brushwork is easier to see.
+On a phone or tablet in portrait orientation, use the layout control beside **Reference** to switch between side-by-side and stacked images. Wide photos start stacked. Rotate to landscape to compare both views beside each other. The pictures keep their proportions as the browser bars appear or disappear.
 
 ## Run it
 
@@ -20,7 +20,7 @@ After changing a script, stylesheet or icon, run `python build.py --refresh-asse
 
 For a single file that opens with a double-click and works offline, run `python build.py`, then open `Brushwork.html`. Python is only needed to make the file. Use a browser with Canvas 2D and Web Workers.
 
-English is the default. The language selector also offers Spanish, Simplified Chinese, Brazilian Portuguese and French. The browser remembers your selection on this device when local storage is available.
+Brushwork supports English, Spanish, Simplified Chinese, Brazilian Portuguese and French. A saved choice takes priority. On a first visit, the studio reads the browser’s preferred languages. If the first supported choice is English, or none matches, it checks the device’s region tag and time zone for a local default. For example, Spanish opens on a Spanish-language phone or on an English-language phone set to Buenos Aires time. English is the fallback when there is no match. The selector remembers a manual choice on this device when local storage is available. All detection happens locally.
 
 ## How it paints
 

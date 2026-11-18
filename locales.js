@@ -236,11 +236,54 @@
       ],
     }
   };
-  let code = 'en';
-  try {
-    const saved = localStorage.getItem('brushwork.language');
-    if (Object.hasOwn(labels, saved)) code = saved;
-  } catch {}
+  const supported = {en: 'en', es: 'es', fr: 'fr', pt: 'pt-BR', zh: 'zh-CN'};
+  // Use explicit region tags and recognizable IANA zones. An offset alone spans many countries.
+  const places = {
+    es: new Set(('AR BO CL CO CR CU DO EC ES GT HN MX NI PA PE PR PY SV UY VE ' +
+      'America/Buenos_Aires America/Catamarca America/Cordoba America/Jujuy America/Mendoza America/Rosario ' +
+      'America/Asuncion America/Bogota America/Caracas America/Costa_Rica America/El_Salvador America/Guatemala ' +
+      'America/Guayaquil America/Havana America/La_Paz America/Lima America/Managua America/Montevideo ' +
+      'America/Panama America/Puerto_Rico America/Santiago America/Punta_Arenas America/Coyhaique America/Santo_Domingo America/Tegucigalpa ' +
+      'America/Mexico_City America/Cancun America/Chihuahua America/Ciudad_Juarez America/Hermosillo America/Matamoros ' +
+      'America/Mazatlan America/Merida America/Monterrey America/Ojinaga America/Tijuana America/Bahia_Banderas ' +
+      'Europe/Madrid Africa/Ceuta Atlantic/Canary Pacific/Easter Pacific/Galapagos').split(' ')),
+    'pt-BR': new Set(('BR PT AO CV MZ ST GW ' +
+      'America/Sao_Paulo America/Araguaina America/Bahia America/Belem America/Boa_Vista America/Campo_Grande America/Cuiaba ' +
+      'America/Eirunepe America/Fortaleza America/Maceio America/Manaus America/Noronha America/Porto_Velho America/Recife ' +
+      'America/Rio_Branco America/Santarem Europe/Lisbon Atlantic/Azores Atlantic/Madeira Atlantic/Cape_Verde Africa/Luanda Africa/Maputo').split(' ')),
+    fr: new Set(('FR MC GP MQ GF RE YT PF NC PM WF ' +
+      'Europe/Paris Europe/Monaco America/Cayenne America/Guadeloupe America/Martinique America/Miquelon Indian/Reunion ' +
+      'Indian/Mayotte Pacific/Noumea Pacific/Tahiti Pacific/Wallis').split(' ')),
+    'zh-CN': new Set('CN TW HK MO Asia/Shanghai Asia/Taipei Asia/Hong_Kong Asia/Macau'.split(' '))
+  };
+
+  function languageForPlace(place) {
+    if (place?.startsWith('America/Argentina/')) return 'es';
+    return Object.keys(places).find(language => places[language].has(place));
+  }
+
+  function initialLanguage() {
+    try {
+      const saved = localStorage.getItem('brushwork.language');
+      if (Object.hasOwn(labels, saved)) return saved;
+    } catch {}
+
+    let device;
+    try { device = Intl.DateTimeFormat().resolvedOptions(); } catch {}
+    const tags = navigator.languages?.length ? navigator.languages : [navigator.language || device?.locale];
+    let firstLocale, preferred;
+    for (const tag of tags) {
+      try {
+        const locale = new Intl.Locale(tag);
+        firstLocale ??= locale;
+        preferred ??= supported[locale.language];
+      } catch { /* A malformed preference should not hide the next one. */ }
+    }
+    if (preferred && preferred !== 'en') return preferred;
+    return languageForPlace(firstLocale?.region) ?? languageForPlace(device?.timeZone) ?? 'en';
+  }
+
+  let code = initialLanguage();
 
   function set(value) {
     if (!Object.hasOwn(labels, value)) return;

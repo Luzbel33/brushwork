@@ -150,6 +150,8 @@
       mountEditor(project, hidden);
     }
     id('language').value = lang.code;
+    const compactLanguage = id('language-short');
+    if (compactLanguage) compactLanguage.textContent = lang.code === 'zh-CN' ? '中文' : lang.code.split('-')[0].toUpperCase();
     id('project-source').title = t('sourceCode');
     updateLayout();
     renderProgress(position, true);

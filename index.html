@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f7f3ec">
   <title>Brushwork · Painting studio</title>
   <meta name="description" content="Watch your photo become a painting, stroke by stroke. Scrub through the process and save your favorite frame. Everything runs in your browser.">
@@ -16,7 +16,7 @@
   <link rel="icon" type="image/x-icon" sizes="16x16 32x32 48x48" href="favicon.ico?v=4ac551bdb88c">
   <link rel="icon" type="image/svg+xml" sizes="any" href="mark.svg?v=f669484ce2ef">
   <link rel="apple-touch-icon" sizes="180x180" href="touch-icon.png?v=4a7aeed057ad">
-  <link rel="stylesheet" href="studio.css?v=aa4576804d22">
+  <link rel="stylesheet" href="studio.css?v=fb12ab0b836a">
 </head>
 <body>
   <svg class="symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
@@ -37,10 +37,12 @@
   </defs></svg>
   <header class="top"><div class="brand"><img class="brand-mark" src="mark.svg?v=f669484ce2ef" alt="" width="40" height="40"><h1>Brushwork</h1><a id="project-source" href="https://github.com/Luzbel33/brushwork" target="_blank" rel="noopener" data-aria="sourceCode" aria-label="Source code on GitHub" title="Source code on GitHub"><svg class="icon" aria-hidden="true"><use href="#i-code"/></svg><span>GitHub</span></a></div>
     <nav class="top-actions" aria-label="Studio" data-aria="studio">
-      <label class="language"><svg class="icon"><use href="#i-globe"/></svg><span class="sr" data-t="language">Language</span><select id="language"><option lang="en" value="en">English</option><option lang="es" value="es">Español</option><option lang="zh-CN" value="zh-CN">简体中文</option><option lang="pt-BR" value="pt-BR">Português</option><option lang="fr" value="fr">Français</option></select><svg class="icon caret"><use href="#i-caret"/></svg></label>
-      <button id="upload" class="btn"><svg class="icon"><use href="#i-upload"/></svg><span data-t="open">Open photo</span></button>
-      <input id="photo-file" type="file" accept="image/*" hidden>
-      <button id="save" class="btn primary" aria-haspopup="dialog" disabled><svg class="icon"><use href="#i-save"/></svg><span data-t="export">Save PNG</span></button>
+      <label class="language"><svg class="icon"><use href="#i-globe"/></svg><span class="sr" data-t="language">Language</span><span id="language-short" aria-hidden="true">EN</span><select id="language"><option lang="en" value="en">English</option><option lang="es" value="es">Español</option><option lang="zh-CN" value="zh-CN">简体中文</option><option lang="pt-BR" value="pt-BR">Português</option><option lang="fr" value="fr">Français</option></select><svg class="icon caret"><use href="#i-caret"/></svg></label>
+      <div class="file-actions">
+        <button id="upload" class="btn"><svg class="icon"><use href="#i-upload"/></svg><span data-t="open">Open photo</span></button>
+        <input id="photo-file" type="file" accept="image/*" hidden>
+        <button id="save" class="btn primary" aria-haspopup="dialog" disabled><svg class="icon"><use href="#i-save"/></svg><span data-t="export">Save PNG</span></button>
+      </div>
     </nav>
   </header>
   <main>
@@ -65,9 +67,9 @@
     <button class="choice" id="save-final"><svg class="icon"><use href="#i-brush"/></svg><span><strong data-t="completed">Save finished painting</strong><small id="final-note"></small></span></button>
   </dialog>
   <!--CONFIG-->
-  <script src="locales.js?v=67c8eb7ad41f"></script>
+  <script src="locales.js?v=6f53c67a2e90"></script>
   <script src="brush.js?v=fd8e86a46a03"></script>
   <script src="painting-worker.js?v=738c5b897563"></script>
   <script src="timeline.js?v=306bcbdd3433"></script>
-  <script src="player.js?v=a179b3dced3d"></script>
+  <script src="player.js?v=86e40c047d02"></script>
 </body></html>
