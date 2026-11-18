@@ -650,7 +650,7 @@ h2 {
   #restart {min-width: 44px}
   #restart span {position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%)}
 }
-@media (max-width: 374px), (max-width: 860px) and (max-height: 540px) and (orientation: landscape) {
+@media (max-width: 410px), (max-width: 860px) and (max-height: 540px) and (orientation: landscape) {
   #final {min-width: 44px}
   #final span {position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%)}
 }
@@ -685,4 +685,51 @@ h2 {
 
 @media (prefers-reduced-motion: reduce) {
   * {transition: none !important}
+}
+/* Allow translated labels to shrink inside their tracks as the viewport narrows. */
+.top, .brand, .top-actions, main, .gallery, figure, figcaption,
+figcaption > span, .transport, .progress-info, .play-controls, .cluster {
+  min-width: 0;
+}
+
+@media (max-width: 535px) {
+  .top { grid-template-columns: minmax(0, 1fr) max-content; }
+  .brand h1 { min-width: 0; }
+  .language { min-width: 0; max-width: 100%; }
+  .language select { max-width: 100%; }
+  #upload, #save { max-width: 100%; }
+  figcaption > span { flex: 1 1 auto; }
+  figcaption strong {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  #layout { flex: 0 0 auto; }
+}
+
+/* On the narrowest phones, separate the file actions when there is room for another row. */
+@media (max-width: 320px) and (min-height: 560px) and (orientation: portrait) {
+  .top { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .brand { grid-column: 1 / -1; grid-row: 1; }
+  .file-actions { display: contents; }
+  .language {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+    margin-right: 0;
+  }
+  #upload { grid-column: 2; grid-row: 2; justify-self: end; }
+  #save {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: stretch;
+    width: 100%;
+  }
+}
+
+@media (max-width: 350px) {
+  .progress-info { flex-wrap: wrap; gap: 2px 8px; }
+  .progress-info .stage { flex: 1 1 6em; }
+  .progress-info .reading { margin-left: auto; }
 }
