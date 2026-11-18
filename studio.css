@@ -758,3 +758,59 @@ h2 {
   .mat {height: clamp(118px, calc(100dvh - 226px), 335px); min-height: 0}
   .transport {padding: 7px 12px}
 }
+/* Fluid sizing: keep grid and flex children inside the visual viewport. */
+.top, .brand, .top-actions, main, .gallery, figure, figcaption,
+figcaption > span, .transport, .progress-info, .play-controls, .cluster {
+  min-width: 0;
+}
+
+@media (max-width: 535px) {
+  .top { grid-template-columns: minmax(0, 1fr) max-content; }
+  .brand h1 { min-width: 0; }
+  .language { min-width: 0; max-width: 100%; }
+  .language select { max-width: 100%; }
+  #upload, #save { max-width: 100%; }
+  figcaption > span { flex: 1 1 auto; }
+  figcaption strong {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  #layout { flex: 0 0 auto; }
+  .play-controls { width: 100%; grid-template-columns: minmax(0, 1fr) auto; }
+  .play-controls .cluster { min-width: 0; }
+}
+
+@media (max-width: 410px) {
+  .top { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .brand { grid-column: 1 / -1; grid-row: 1; }
+  .language {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+    margin-right: 0;
+  }
+  #upload { grid-column: 2; grid-row: 2; justify-self: end; }
+  #save {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: stretch;
+    width: 100%;
+  }
+  #final { width: 44px; min-width: 44px; padding-inline: 8px; }
+  #final span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 350px) {
+  .progress-info { flex-wrap: wrap; gap: 2px 8px; }
+  .progress-info .stage { flex: 1 1 100%; }
+  .progress-info .reading { margin-left: auto; }
+}
